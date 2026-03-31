@@ -1,0 +1,115 @@
+
+```lua
+--// Services //--
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+--// Variables //--
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer.PlayerGui
+local Character = LocalPlayer.Character
+local Humanoid = Character and Character:FindFirstChild("Humanoid")
+local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+
+--// Remote Events //--
+local BuyItemEvent = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("BuyItem") -- Replace "Remotes" with the actual folder name if different
+
+--// Functions //--
+
+-- Function to buy a gamepass or fruit (handles errors gracefully)
+local function BuyItem(itemName, itemType)
+    --// Checks //--
+    if not itemName or not itemType then
+        print("Error: Item name and item type are required.")
+        return
+    end
+
+    if not BuyItemEvent then
+        print("Error: BuyItemEvent not found in ReplicatedStorage. Check your explorer.")
+        return
+    end
+
+    --// Attempt to buy the item //--
+    pcall(function()
+        BuyItemEvent:FireServer(itemName, itemType)
+        print("Attempting to buy " .. itemName .. " (" .. itemType .. ")")
+    end)
+end
+
+--// Gamepasses to buy (replace with actual names) //--
+local Gamepasses = {
+    "2xMoney", -- Example: replace with the real Gamepass name
+    "2xMastery",
+    "FruitNotifier",
+    "Inventory",
+}
+
+--// Fruits to buy (replace with actual names) //--
+local Fruits = {
+    "Dough", -- Example: replace with the real Fruit name
+    "Dragon",
+    "Leopard",
+    "Kitsune",
+    -- Add all other fruits you want here
+}
+
+--// Buy all gamepasses
+local function BuyAllGamepasses()
+    for i, gamepassName in ipairs(Gamepasses) do
+        BuyItem(gamepassName, "gamepass")
+        task.wait(0.5) -- Add a small delay to prevent rate limiting
+    end
+    print("Attempted to purchase all gamepasses.")
+end
+
+--// Buy all permanent fruits
+local function BuyAllFruits()
+    for i, fruitName in ipairs(Fruits) do
+        BuyItem(fruitName, "fruit")
+        task.wait(0.5) -- Add a small delay to prevent rate limiting
+    end
+    print("Attempted to purchase all fruits.")
+end
+
+--// Keybind to buy all (adjust key as needed) //--
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if gameProcessedEvent then return end -- Prevent triggering in chat etc.
+
+    if input.KeyCode == Enum.KeyCode.B then -- Change "B" to your desired key
+        print("Attempting to buy all gamepasses and fruits...")
+        BuyAllGamepasses()
+        BuyAllFruits()
+    end
+end)
+
+--// Optional: Command-line interface //--
+local function ExecuteCommand(command)
+	local args = string.split(command, " ")
+	local cmd = args[1]
+	table.remove(args, 1)
+
+	if cmd == "buygamepasses" then
+		BuyAllGamepasses()
+	elseif cmd == "buyfruits" then
+		BuyAllFruits()
+	elseif cmd == "buy" then -- Example: buy Dough fruit
+		if #args < 2 then
+			print("Usage: buy <item_name> <item_type (fruit/gamepass)>")
+			return
+		end
+		local itemName = args[1]
+		local itemType = args[2]
+		BuyItem(itemName, itemType)
+	else
+		print("Unknown command.")
+	end
+end
+
+-- Example usage in the console: ExecuteCommand("buygamepasses") or ExecuteCommand("buy Dough fruit")
+-- For command line input: Create a textbox in a GUI, and on text submitted, call ExecuteCommand(textbox.Text)
+-- OR, for testing, just call ExecuteCommand("buygamepasses") directly here.
+
+print("Blox Fruits Gamepass/Fruit Buyer Loaded. Press 'B' (or change in script) to buy all or use command 'buy'.")
+```
+Recent Updates
